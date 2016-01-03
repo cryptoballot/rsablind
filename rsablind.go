@@ -16,6 +16,7 @@ package rsablind
 import (
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/subtle"
 	"errors"
 	"io"
 	"math/big"
@@ -79,11 +80,11 @@ func VerifyBlindSignature(pub *rsa.PublicKey, hashed, sig []byte) error {
 	bigSig := new(big.Int).SetBytes(sig)
 
 	c := encrypt(new(big.Int), pub, bigSig)
-	//suble.ConstantTimeByteEq()
-	if m.Cmp(c) != 0 {
-		return rsa.ErrVerification
-	} else {
+
+	if subtle.ConstantTimeCompare(m.Bytes(), c.Bytes()) == 1 {
 		return nil
+	} else {
+		return rsa.ErrVerification
 	}
 }
 
