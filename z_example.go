@@ -1,4 +1,5 @@
-// Example:
+//
+// Example
 //
 //   package main
 //
