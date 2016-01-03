@@ -1,3 +1,16 @@
+// Package rsablind implements a RSA Blind Signature Scheme.
+//
+// In cryptography, a blind signature is a form of digital signature in which the content of a message is disguised (blinded) before it is signed. The entity signing the message does not know the contents of the message being signed.
+//
+// Caveats
+//
+// 1. This library has not undergone a security review or audit and should not be used in production code.
+//
+// 2. The key used to sign the blinded messages should not be used for any other purpose. Re-using this key in other contexts opens it up to attack.
+//
+// 3. Use the Full-Domain-Hash package (https://github.com/cryptoballot/fdh) to expand the size of your hash to a secure size. You should use a full-domain-hash size of at least 1024 bits, but bigger is better. However, this hash size needs to remain significantly smaller than your key size to avoid RSA verification failures. A good rule of thumb is to use 2048 bit keys and 1536 bit hashes, or 4096 bit keys and 3072 bit hashes (hash size is 3/4 the key size).
+//
+// 4. Because we use a full-domain hash size that is less than the key size, this scheme is theoretically open to an Index Calculation Attack (see http://www.jscoron.fr/publications/isodcc.pdf). However, with a large enough RSA key (recommended 2048 bits or larger), and a large enough full-domain-hash (1024 bits or larger) this attack in infeasable.
 package rsablind
 
 import (
@@ -8,6 +21,32 @@ import (
 	"math/big"
 )
 
+// Given the Public Key of the signing entity and a hashed message, blind the message so it cannot be inspected by the signing entity.
+//
+// Use the Full-Domain-Hash package (https://github.com/cryptoballot/fdh) to expand the size of your hash to a secure size. You should
+// use a full-domain-hash size of at least 1024 bits, but bigger is better. However, this hash size needs to remain significantly
+// smaller than your key size to avoid RSA verification failures. A good rule of thumb is to use 2048 bit keys and 1536 bit hashes,
+// or 4096 bit keys and 3072 bit hashes (hash size is 3/4 the key size).
+//
+// This function returns the blinded message and an unblinding factor can be used in conjuction with the Unblind() function to
+// unblind the signature after the message has been signed.
+func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []byte, err error) {
+	bitlen := key.N.BitLen()
+	if len(hashed)*8 > bitlen {
+		return nil, nil, rsa.ErrMessageTooLong
+	}
+
+	blinded, unblinderBig, err := blind(rand.Reader, key, new(big.Int).SetBytes(hashed))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return blinded.Bytes(), unblinderBig.Bytes(), nil
+}
+
+// Given a private key and a hashed message, blind-sign the hashed-message.
+//
+// The private key used here should not be used for any other purpose other than blind-signing (doing so is insecure)
 func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	bitlen := key.PublicKey.N.BitLen()
 	if len(hashed)*8 > bitlen {
@@ -23,20 +62,8 @@ func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	return m.Bytes(), nil
 }
 
-func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []byte, err error) {
-	bitlen := key.N.BitLen()
-	if len(hashed)*8 > bitlen {
-		return nil, nil, rsa.ErrMessageTooLong
-	}
-
-	blinded, unblinderBig, err := blind(rand.Reader, key, new(big.Int).SetBytes(hashed))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	return blinded.Bytes(), unblinderBig.Bytes(), nil
-}
-
+// Given the Public Key of the signing entity, the blind signature, and the unblinding factor (obtained from Blind()), recover a new
+// signature that will validate against the original hashed message.
 func Unblind(pub *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
 	m := new(big.Int).SetBytes(blindedSig)
 	unblinderBig := new(big.Int).SetBytes(unblinder)
@@ -45,6 +72,7 @@ func Unblind(pub *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
 	return m.Bytes()
 }
 
+// Verify that the unblinded signature properly signs the non-blinded (original) hashed message
 func VerifyBlindSignature(pub *rsa.PublicKey, hashed, sig []byte) error {
 	m := new(big.Int).SetBytes(hashed)
 	bigSig := new(big.Int).SetBytes(sig)
