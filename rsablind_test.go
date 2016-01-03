@@ -1,18 +1,24 @@
 package rsablind
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto"
-	"testing"
-	"github.com/cryptoballot/fdh"
 	_ "crypto/sha256"
+	"github.com/cryptoballot/fdh"
+	"github.com/davecgh/go-spew/spew"
+	"math/big"
+	"testing"
 )
 
 func TestBlindSign(t *testing.T) {
-	//data := []byte("data")
+	data := []byte("data")
 
-	//blindSignTest(t, "TestBlindSign", data);
+	h := fdh.New(crypto.SHA256, 256)
+	h.Write(data)
+	hashed := h.Sum(nil)
+
+	blindSignTest(t, "TestBlindSign", data)
 }
 
 func TestBlindSignBig(t *testing.T) {
@@ -23,13 +29,13 @@ func TestBlindSignBig(t *testing.T) {
 		t.Error(err)
 	}
 
-	blindSignTest(t, "TestBlindSignBig", data);
+	blindSignTest(t, "TestBlindSignBig", data)
 }
 
 func blindSignTest(t *testing.T, test string, data []byte) {
-	h := fdh.New(crypto.SHA256, 512)
-    h.Write(data)
-    hashed := h.Sum(nil)
+	h := fdh.New(crypto.SHA256, 256)
+	h.Write(data)
+	hashed := h.Sum(nil)
 
 	key, _ := rsa.GenerateKey(rand.Reader, 512)
 	blinded, unblinder, err := Blind(&key.PublicKey, hashed)
@@ -43,12 +49,20 @@ func blindSignTest(t *testing.T, test string, data []byte) {
 	}
 	unblindSig := Unblind(&key.PublicKey, sig, unblinder)
 
+	pk := key.PublicKey.N
+	ms := new(big.Int).SetBytes(hashed)
+	spew.Dump(pk.BitLen())
+	spew.Dump(ms.BitLen())
+	if ms.Cmp(pk) == 1 {
+		spew.Dump("will fail")
+	}
+
 	// Check to make sure both the blinded and unblided data can be verified with the same signature
 	if err := VerifyBlindSignature(&key.PublicKey, hashed, unblindSig); err != nil {
-		t.Errorf(test + ": Failed to verify for unblinded signature: %v", err)
+		t.Errorf(test+": Failed to verify for unblinded signature: %v", err)
 	}
 	if err := VerifyBlindSignature(&key.PublicKey, blinded, sig); err != nil {
-		t.Errorf(test + ": Failed to verify for blinded signature: %v", err)
+		t.Errorf(test+": Failed to verify for blinded signature: %v", err)
 	}
 
 	// Check to make sure blind signing does not work when mismatched

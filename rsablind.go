@@ -8,12 +8,10 @@ import (
 	"math/big"
 )
 
-var ErrMessageWrongSize = errors.New("rsablind: hashed message is incorrect size")
-
 func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	bitlen := key.PublicKey.N.BitLen()
-	if bitlen != len(hashed) * 8 {
-		return nil, ErrMessageWrongSize
+	if len(hashed)*8 > bitlen {
+		return nil, rsa.ErrMessageTooLong
 	}
 
 	c := new(big.Int).SetBytes(hashed)
@@ -27,8 +25,8 @@ func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 
 func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []byte, err error) {
 	bitlen := key.N.BitLen()
-	if bitlen != len(hashed) * 8 {
-		return nil, nil, ErrMessageWrongSize
+	if len(hashed)*8 > bitlen {
+		return nil, nil, rsa.ErrMessageTooLong
 	}
 
 	blinded, unblinderBig, err := blind(rand.Reader, key, new(big.Int).SetBytes(hashed))
@@ -39,26 +37,26 @@ func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []b
 	return blinded.Bytes(), unblinderBig.Bytes(), nil
 }
 
-func Unblind(key *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
+func Unblind(pub *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
 	m := new(big.Int).SetBytes(blindedSig)
 	unblinderBig := new(big.Int).SetBytes(unblinder)
 	m.Mul(m, unblinderBig)
-	m.Mod(m, key.N)
+	m.Mod(m, pub.N)
 	return m.Bytes()
 }
 
-func VerifyBlindSignature(key *rsa.PublicKey, hashed, sig []byte) error {
+func VerifyBlindSignature(pub *rsa.PublicKey, hashed, sig []byte) error {
 	m := new(big.Int).SetBytes(hashed)
 	bigSig := new(big.Int).SetBytes(sig)
-	
-	c := encrypt(bigZero, key, bigSig)
+
+	c := encrypt(new(big.Int), pub, bigSig)
+	//suble.ConstantTimeByteEq()
 	if m.Cmp(c) != 0 {
 		return rsa.ErrVerification
 	} else {
 		return nil
 	}
 }
-
 
 // Adapted from from crypto/rsa decrypt
 func blind(random io.Reader, key *rsa.PublicKey, c *big.Int) (blinded, unblinder *big.Int, err error) {
@@ -89,8 +87,6 @@ func blind(random io.Reader, key *rsa.PublicKey, c *big.Int) (blinded, unblinder
 		}
 	}
 }
-
-
 
 // All variables and functions below are carbon copy-paste from the standard library crypto/rsa
 
