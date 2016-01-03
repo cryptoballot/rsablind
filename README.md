@@ -9,7 +9,7 @@ In cryptography, a blind signature is a form of digital signature in which the c
 
 1. **This library has not undergone a security review or audit and should not be used in production code.**
 
-2. The key used to sign the blinded messages should not be used for any other purpose. Re-using this key in other contexts opens it up to attack. See 
+2. The key used to sign the blinded messages should not be used for any other purpose. Re-using this key in other contexts opens it up to attack. 
 
 3. Use the Full-Domain-Hash package (https://github.com/cryptoballot/fdh) to expand the size of your hash to a secure size. You should use a full-domain-hash size of at least 1024 bits. This hash size needs to remain significantly smaller than your key size to avoid RSA verification failures. A good rule of thumb is to use 2056 bit keys and 1024 bit hashes. 
 
