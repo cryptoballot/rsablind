@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"math/big"
-	"github.com/davecgh/go-spew/spew"
 )
 
 var ErrMessageWrongSize = errors.New("rsablind: hashed message is incorrect size")
@@ -26,13 +25,18 @@ func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	return m.Bytes(), nil
 }
 
-func Blind(key *rsa.PublicKey, hashed []byte) (blindedData, unblinder []byte) {
-	blinded, unblinderBig, err := blind(rand.Reader, key, new(big.Int).SetBytes(hashed))
-	if err != nil {
-		panic(err)
+func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []byte, err error) {
+	bitlen := key.N.BitLen()
+	if bitlen != len(hashed) * 8 {
+		return nil, nil, ErrMessageWrongSize
 	}
 
-	return blinded.Bytes(), unblinderBig.Bytes()
+	blinded, unblinderBig, err := blind(rand.Reader, key, new(big.Int).SetBytes(hashed))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return blinded.Bytes(), unblinderBig.Bytes(), nil
 }
 
 func Unblind(key *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
@@ -46,9 +50,12 @@ func Unblind(key *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
 func VerifyBlindSignature(key *rsa.PublicKey, hashed, sig []byte) error {
 	m := new(big.Int).SetBytes(hashed)
 	bigSig := new(big.Int).SetBytes(sig)
-	c := encrypt(new(big.Int), key, bigSig)
+	
+
+
+
+	c := encrypt(bigZero, key, bigSig)
 	if m.Cmp(c) != 0 {
-		spew.Dump(m.Cmp(c))
 		return rsa.ErrVerification
 	} else {
 		return nil
@@ -74,6 +81,7 @@ func blind(random io.Reader, key *rsa.PublicKey, c *big.Int) (blinded, unblinder
 			r = bigOne
 		}
 		ir, ok := modInverse(r, key.N)
+
 		if ok {
 			bigE := big.NewInt(int64(key.E))
 			rpowe := new(big.Int).Exp(r, bigE, key.N)
