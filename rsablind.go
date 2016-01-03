@@ -51,9 +51,6 @@ func VerifyBlindSignature(key *rsa.PublicKey, hashed, sig []byte) error {
 	m := new(big.Int).SetBytes(hashed)
 	bigSig := new(big.Int).SetBytes(sig)
 	
-
-
-
 	c := encrypt(bigZero, key, bigSig)
 	if m.Cmp(c) != 0 {
 		return rsa.ErrVerification
