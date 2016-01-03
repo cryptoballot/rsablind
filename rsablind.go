@@ -15,7 +15,7 @@ func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	}
 
 	c := new(big.Int).SetBytes(hashed)
-	m, err := decrypt(rand.Reader, key, c)
+	m, err := decryptAndCheck(rand.Reader, key, c)
 	if err != nil {
 		return nil, err
 	}
