@@ -2,6 +2,7 @@ language: go
 go: 1.5
 install:
     - go get -v golang.org/x/tools/cmd/cover
+    - go get -v github.com/cryptoballot/fdh
 script:
     - go test -v ./... -covermode=count -coverprofile=profile.cov
 after_success:
