@@ -1,6 +1,8 @@
 #RSA Blind
 ##RSA Blind Signing using a Full Domain Hash
 
+[![Build Status](https://travis-ci.org/cryptoballot/rsablind.svg?branch=master)](https://travis-ci.org/cryptoballot/rsablind)
+
 This library implements a Full-Domain-Hash RSA Blind Signature Scheme. 
 
 In cryptography, a blind signature is a form of digital signature in which the content of a message is disguised (blinded) before it is signed. The entity signing the message does not know the contents of the message being signed. 
