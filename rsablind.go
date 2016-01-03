@@ -28,7 +28,7 @@ import (
 // smaller than your key size to avoid RSA verification failures. A good rule of thumb is to use 2048 bit keys and 1536 bit hashes,
 // or 4096 bit keys and 3072 bit hashes (hash size is 3/4 the key size).
 //
-// This function returns the blinded message and an unblinding factor can be used in conjuction with the Unblind() function to
+// This function returns the blinded message and an unblinding factor that can be used in conjuction with the `Unblind()` function to
 // unblind the signature after the message has been signed.
 func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []byte, err error) {
 	bitlen := key.N.BitLen()
@@ -44,9 +44,10 @@ func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []b
 	return blinded.Bytes(), unblinderBig.Bytes(), nil
 }
 
-// Given a private key and a hashed message, blind-sign the hashed-message.
+// Given a private key and a hashed message, blind sign the hashed message.
 //
-// The private key used here should not be used for any other purpose other than blind-signing (doing so is insecure)
+// The private key used here should not be used for any other purpose other than blind signing (use for other purposes is insecure
+// when also using it for blind signatures)
 func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	bitlen := key.PublicKey.N.BitLen()
 	if len(hashed)*8 > bitlen {
@@ -62,7 +63,7 @@ func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	return m.Bytes(), nil
 }
 
-// Given the Public Key of the signing entity, the blind signature, and the unblinding factor (obtained from Blind()), recover a new
+// Given the Public Key of the signing entity, the blind signature, and the unblinding factor (obtained from `Blind()`), recover a new
 // signature that will validate against the original hashed message.
 func Unblind(pub *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
 	m := new(big.Int).SetBytes(blindedSig)
