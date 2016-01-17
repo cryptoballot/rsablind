@@ -1,9 +1,7 @@
 #RSA Blind
 ##RSA Blind Signing using a Full Domain Hash
 
-[![GoDoc](https://godoc.org/github.com/cryptoballot/rsablind?status.svg)](https://godoc.org/github.com/cryptoballot/rsablind)
-
-[![Build Status](https://travis-ci.org/cryptoballot/rsablind.svg?branch=master)](https://travis-ci.org/cryptoballot/rsablind)
+[![GoDoc](https://godoc.org/github.com/cryptoballot/rsablind?status.svg)](https://godoc.org/github.com/cryptoballot/rsablind)  [![Build Status](https://travis-ci.org/cryptoballot/rsablind.svg?branch=master)](https://travis-ci.org/cryptoballot/rsablind)
 
 This library implements a Full-Domain-Hash RSA Blind Signature Scheme. 
 
