@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	_ "crypto/sha256"
+	"math/big"
 	"testing"
 
 	"github.com/cryptoballot/fdh"
@@ -80,4 +81,15 @@ func TestErrors(t *testing.T) {
 	if err == nil {
 		t.Error("Failed to get error on too large a hash")
 	}
+
+	badkey := &rsa.PrivateKey{
+		PublicKey: key.PublicKey,
+		D:         big.NewInt(8),
+		Primes:    []*big.Int{big.NewInt(12)},
+	}
+	_, err = BlindSign(badkey, []byte("ABC123"))
+	if err == nil {
+		t.Error("Failed to get error on bad private key")
+	}
+
 }
