@@ -19,9 +19,9 @@ In cryptography, a blind signature is a form of digital signature in which the c
 
 2. The key used to sign the blinded messages should not be used for any other purpose. Re-using this key in other contexts opens it up to attack. 
 
-3. Use the Full-Domain-Hash package (https://github.com/cryptoballot/fdh) to expand the size of your hash to a secure size. You should use a full-domain-hash size of at least 1024 bits, but bigger is better. However, this hash size needs to remain significantly smaller than your key size to avoid RSA verification failures. A good rule of thumb is to use 2048 bit keys and 1536 bit hashes, or 4096 bit keys and 3072 bit hashes (hash size is 3/4 the key size). 
+3. Use the Full-Domain-Hash package (https://github.com/cryptoballot/fdh) to expand the size of your hash to a secure size. You should use a full-domain-hash size of at least 1024 bits, but bigger is better. However, this hash size needs to remain significantly smaller than your key size to avoid RSA verification failures. A good rule of thumb is to use 2048 bit keys and 1536 bit hashes, or 4096 bit keys and 3072 bit hashes (hash size is 3/4 the key size). You may also opt to use a SHA-3 SHAKE hash (SHAKE-128 or SHAKE-256) in lieu of a full-domain-hash.
 
-4. Because we use a full-domain hash size that is less than the key size, this scheme is theoretically open to an Index Calculation Attack (see http://www.jscoron.fr/publications/isodcc.pdf). However, with a large enough RSA key (recommended 2048 bits or larger), and a large enough full-domain-hash (1024 bits or larger) this attack in infeasable. 
+4. To prevent against an Index Calculation Attack (see http://www.jscoron.fr/publications/isodcc.pdf), be sure to use a properly sized RSA key and full-domain-hash. The RSA key should be at least 2048 bits (but larger is better) and the full-domain-hash should be at least 1024 bits (but larger is better). 
 
 ### Example
 ```go
