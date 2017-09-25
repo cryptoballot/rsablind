@@ -15,7 +15,10 @@ func TestBlindSign(t *testing.T) {
 
 	hashed := fdh.Sum(crypto.SHA256, 256, data)
 
-	blindSignTest(t, "TestBlindSign", hashed)
+	key, _ := rsa.GenerateKey(rand.Reader, 512)
+	// Do it twice to make sure we are also testing using cached precomputed values.
+	blindSignTest(t, "TestBlindSign", hashed, key)
+	blindSignTest(t, "TestBlindSign", hashed, key)
 }
 
 func TestBlindSignBig(t *testing.T) {
@@ -26,13 +29,16 @@ func TestBlindSignBig(t *testing.T) {
 		t.Error(err)
 	}
 
-	blindSignTest(t, "TestBlindSignBig", data)
+	key, _ := rsa.GenerateKey(rand.Reader, 512)
+
+	// Do it twice to make sure we are also testing using cached precomputed values.
+	blindSignTest(t, "TestBlindSignBig", data, key)
+	blindSignTest(t, "TestBlindSignBig", data, key)
 }
 
-func blindSignTest(t *testing.T, test string, data []byte) {
+func blindSignTest(t *testing.T, test string, data []byte, key *rsa.PrivateKey) {
 	hashed := fdh.Sum(crypto.SHA256, 256, data)
 
-	key, _ := rsa.GenerateKey(rand.Reader, 512)
 	blinded, unblinder, err := Blind(&key.PublicKey, hashed)
 	if err != nil {
 		t.Error(err)
