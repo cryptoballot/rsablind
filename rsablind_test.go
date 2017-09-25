@@ -5,8 +5,9 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	_ "crypto/sha256"
-	"github.com/cryptoballot/fdh"
 	"testing"
+
+	"github.com/cryptoballot/fdh"
 )
 
 func TestBlindSign(t *testing.T) {
@@ -57,5 +58,20 @@ func blindSignTest(t *testing.T, test string, data []byte) {
 	}
 	if err := VerifyBlindSignature(&key.PublicKey, blinded, unblindSig); err == nil {
 		t.Errorf(test + ": Faulty Verfication for mismatched signature 2")
+	}
+}
+
+func TestErrors(t *testing.T) {
+	hashed := []byte("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+	// Generate a tiny key and make sure using it to blind results in errors
+	key, _ := rsa.GenerateKey(rand.Reader, 128)
+
+	_, _, err := Blind(&key.PublicKey, hashed)
+	if err == nil {
+		t.Error("Failed to get error on too large a hash")
+	}
+	_, err = BlindSign(key, hashed)
+	if err == nil {
+		t.Error("Failed to get error on too large a hash")
 	}
 }
