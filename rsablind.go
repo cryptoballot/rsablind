@@ -8,6 +8,8 @@ import (
 	"math/big"
 )
 
+// Blind blinds the hashes message.
+//
 // Given the Public Key of the signing entity and a hashed message, blind the message so it cannot be inspected by the signing entity.
 //
 // Use the Full-Domain-Hash package (https://github.com/cryptoballot/fdh) to expand the size of your hash to a secure size. You should
@@ -31,7 +33,7 @@ func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []b
 	return blinded.Bytes(), unblinderBig.Bytes(), nil
 }
 
-// Given a private key and a hashed message, blind sign the hashed message.
+// BlindSign signs the provided hashed message blindly.
 //
 // The private key used here should not be used for any other purpose other than blind signing (use for other purposes is insecure
 // when also using it for blind signatures)
@@ -50,6 +52,8 @@ func BlindSign(key *rsa.PrivateKey, hashed []byte) ([]byte, error) {
 	return m.Bytes(), nil
 }
 
+// Unblind unblinds the blind signature.
+//
 // Given the Public Key of the signing entity, the blind signature, and the unblinding factor (obtained from `Blind()`), recover a new
 // signature that will validate against the original hashed message.
 func Unblind(pub *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
@@ -60,6 +64,8 @@ func Unblind(pub *rsa.PublicKey, blindedSig, unblinder []byte) []byte {
 	return m.Bytes()
 }
 
+// VerifyBlindSignature verifies an unblinded blind signature.
+//
 // Verify that the unblinded signature properly signs the non-blinded (original) hashed message
 func VerifyBlindSignature(pub *rsa.PublicKey, hashed, sig []byte) error {
 	m := new(big.Int).SetBytes(hashed)
