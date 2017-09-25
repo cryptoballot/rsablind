@@ -61,10 +61,10 @@ func blindSignTest(t *testing.T, test string, data []byte, key *rsa.PrivateKey) 
 
 	// Check to make sure blind signing does not work when mismatched
 	if err := VerifyBlindSignature(&key.PublicKey, data, sig); err == nil {
-		t.Errorf(test + ": Faulty Verfication for mismatched signature 1")
+		t.Errorf(test + ": Faulty Verification for mismatched signature 1")
 	}
 	if err := VerifyBlindSignature(&key.PublicKey, blinded, unblindSig); err == nil {
-		t.Errorf(test + ": Faulty Verfication for mismatched signature 2")
+		t.Errorf(test + ": Faulty Verification for mismatched signature 2")
 	}
 }
 

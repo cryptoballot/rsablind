@@ -15,7 +15,7 @@ import (
 // smaller than your key size to avoid RSA verification failures. A good rule of thumb is to use 2048 bit keys and 1536 bit hashes,
 // or 4096 bit keys and 3072 bit hashes (hash size is 3/4 the key size).
 //
-// This function returns the blinded message and an unblinding factor that can be used in conjuction with the `Unblind()` function to
+// This function returns the blinded message and an unblinding factor that can be used in conjunction with the `Unblind()` function to
 // unblind the signature after the message has been signed.
 func Blind(key *rsa.PublicKey, hashed []byte) (blindedData []byte, unblinder []byte, err error) {
 	bitlen := key.N.BitLen()
