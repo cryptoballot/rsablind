@@ -3,7 +3,8 @@ script:
     - go test -v ./... --race --covermode=atomic --coverprofile=profile.cov
 after_success:
     - go get -v github.com/mattn/goveralls
-    - goveralls -coverprofile=profile.cov -service=travis-ci
+    - cat profile.cov | sed '/rsa.go/d' > profile_filtered.cov # ignore rsa.go for coverage, it's a carbon copy from the RSA package
+    - goveralls -coverprofile=profile_filtered.cov -service=travis-ci
 
 notifications:
   email: false
